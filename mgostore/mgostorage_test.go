@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/RangelReale/osin"
-	"labix.org/v2/mgo"
-	"labix.org/v2/mgo/bson"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 var session *mgo.Session
@@ -58,12 +58,13 @@ func deleteTestDatabase(storage *MongoStorage) {
 	}
 }
 
-func setClient1234(storage *MongoStorage) (*osin.Client, error) {
-	client := &osin.Client{
+func setClient1234(storage *MongoStorage) (osin.DefaultClient, error) {
+	client := osin.DefaultClient{
 		Id:          "1234",
 		Secret:      "aabbccdd",
-		RedirectUri: "http://localhost:14000/appauth"}
-	err := storage.SetClient(client.Id, client)
+		RedirectUri: "http://localhost:14000/appauth",
+	}
+	err := storage.SetClient(client.Id, &client)
 	return client, err
 }
 
@@ -84,12 +85,12 @@ func TestGetClient(t *testing.T) {
 		t.Errorf("setClient returned err: %v", err)
 		return
 	}
-	getClient, err := storage.GetClient(client.Id)
+	getClient, err := storage.GetClient(client.GetId())
 	if err != nil {
 		t.Errorf("getClient returned err: %v", err)
 		return
 	}
-	if !reflect.DeepEqual(client, getClient) {
+	if !reflect.DeepEqual(&client, getClient) {
 		t.Errorf("TestGet failed, expected: '%+v', got: '%+v'", client, getClient)
 	}
 }
@@ -100,7 +101,7 @@ func saveAuthorization(storage *MongoStorage) (*osin.AuthorizeData, error) {
 		return &osin.AuthorizeData{}, err
 	}
 	data := &osin.AuthorizeData{
-		Client:      client,
+		Client:      &client,
 		Code:        "9999",
 		ExpiresIn:   3600,
 		CreatedAt:   bson.Now(),
