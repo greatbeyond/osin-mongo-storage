@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"os"
 	"reflect"
+	"strconv"
 	"testing"
 
 	"github.com/RangelReale/osin"
@@ -173,7 +174,7 @@ func TestRemoveAuthorization(t *testing.T) {
 	}
 }
 
-func saveAccess(storage *MongoStorage) (*osin.AccessData, error) {
+func saveAccess(storage *MongoStorage, token string) (*osin.AccessData, error) {
 	authData, err := saveAuthorization(storage)
 	if err != nil {
 		return &osin.AccessData{}, err
@@ -182,7 +183,7 @@ func saveAccess(storage *MongoStorage) (*osin.AccessData, error) {
 	data := &osin.AccessData{
 		Client:        authData.Client,
 		AuthorizeData: authData,
-		AccessToken:   "9999",
+		AccessToken:   token,
 		RefreshToken:  "r9999",
 		ExpiresIn:     3600,
 		CreatedAt:     bson.Now(),
@@ -201,10 +202,39 @@ func TestLoadAccessNotExisting(t *testing.T) {
 	}
 }
 
+func TestLoadAccesses(t *testing.T) {
+	storage := initTestStorage()
+	defer deleteTestDatabase(storage)
+
+	var input = make([]*osin.AccessData, 10)
+	for i := 0; i < 10; i++ {
+		data, err := saveAccess(storage, strconv.Itoa(i))
+		if err != nil {
+			t.Errorf("saveAccess returned err: %v", err)
+		}
+
+		input[i] = data
+	}
+
+	client, err := storage.GetClient("1234")
+	if err != nil {
+		t.Errorf("GetClient returned err: %v", err)
+	}
+
+	output, err := storage.LoadAccesses(client)
+	if err != nil {
+		t.Errorf("LoadAccesses returned err: %v", err)
+	}
+
+	if !reflect.DeepEqual(input, output) {
+		t.Errorf("LoadAccesses failed, expected: '%+v', got: '%+v'", input, output)
+	}
+}
+
 func TestLoadAccess(t *testing.T) {
 	storage := initTestStorage()
 	defer deleteTestDatabase(storage)
-	data, err := saveAccess(storage)
+	data, err := saveAccess(storage, "9999")
 	if err != nil {
 		t.Errorf("saveAccess returned err: %v", err)
 		return
@@ -231,7 +261,7 @@ func TestRemoveAccessNonExisting(t *testing.T) {
 func TestRemoveAccess(t *testing.T) {
 	storage := initTestStorage()
 	defer deleteTestDatabase(storage)
-	data, err := saveAccess(storage)
+	data, err := saveAccess(storage, "9999")
 	if err != nil {
 		t.Errorf("saveAccess returned err: %v", err)
 		return
@@ -246,7 +276,7 @@ func TestRemoveAccess(t *testing.T) {
 func TestLoadRefresh(t *testing.T) {
 	storage := initTestStorage()
 	defer deleteTestDatabase(storage)
-	data, err := saveAccess(storage)
+	data, err := saveAccess(storage, "9999")
 	if err != nil {
 		t.Errorf("saveAccess returned err: %v", err)
 		return
@@ -273,7 +303,7 @@ func TestRemoveRefreshNonExisting(t *testing.T) {
 func TestRemoveRefresh(t *testing.T) {
 	storage := initTestStorage()
 	defer deleteTestDatabase(storage)
-	data, err := saveAccess(storage)
+	data, err := saveAccess(storage, "9999")
 	if err != nil {
 		t.Errorf("saveAccess returned err: %v", err)
 		return

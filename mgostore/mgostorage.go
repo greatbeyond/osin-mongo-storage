@@ -40,23 +40,7 @@ func New(session *mgo.Session, dbName string) *MongoStorage {
 	return storage
 }
 
-func (store *MongoStorage) Clone() osin.Storage {
-	return store
-}
-
-func (store *MongoStorage) Close() {
-
-}
-
-func (store *MongoStorage) GetClient(id string) (osin.Client, error) {
-	session := store.session.Copy()
-	defer session.Close()
-	clients := session.DB(store.dbName).C(CLIENT_COL)
-	mgoClient := models.NewMgoClient(nil)
-	err := clients.FindId(id).One(mgoClient)
-	return mgoClient.MapToOsinClient(), err
-}
-
+// SetClient stores a new osin.Client or updates an existing
 func (store *MongoStorage) SetClient(id string, client osin.Client) error {
 	session := store.session.Copy()
 	defer session.Close()
@@ -66,6 +50,43 @@ func (store *MongoStorage) SetClient(id string, client osin.Client) error {
 	return err
 }
 
+// LoadAccesses returns all accesses for a given osin.Client
+func (store *MongoStorage) LoadAccesses(client osin.Client) ([]*osin.AccessData, error) {
+	session := store.session.Copy()
+	defer session.Close()
+	accesses := session.DB(store.dbName).C(ACCESS_COL)
+	var mgoAccessData []*models.MgoAccessData
+	err := accesses.Find(bson.M{"client._id": client.GetId()}).All(&mgoAccessData)
+
+	accessData := make([]*osin.AccessData, len(mgoAccessData))
+	for k, v := range mgoAccessData {
+		accessData[k] = v.MapToOsinAccessData()
+	}
+
+	return accessData, err
+}
+
+// Clone implements the osin.Storage interface
+func (store *MongoStorage) Clone() osin.Storage {
+	return store
+}
+
+// Close implements the osin.Storage interface
+func (store *MongoStorage) Close() {
+
+}
+
+// GetClient implements the osin.Storage interface
+func (store *MongoStorage) GetClient(id string) (osin.Client, error) {
+	session := store.session.Copy()
+	defer session.Close()
+	clients := session.DB(store.dbName).C(CLIENT_COL)
+	mgoClient := models.NewMgoClient(nil)
+	err := clients.FindId(id).One(mgoClient)
+	return mgoClient.MapToOsinClient(), err
+}
+
+// SaveAuthorize implements the osin.Storage interface
 func (store *MongoStorage) SaveAuthorize(data *osin.AuthorizeData) error {
 	session := store.session.Copy()
 	defer session.Close()
@@ -75,6 +96,7 @@ func (store *MongoStorage) SaveAuthorize(data *osin.AuthorizeData) error {
 	return err
 }
 
+// LoadAuthorize implements the osin.Storage interface
 func (store *MongoStorage) LoadAuthorize(code string) (*osin.AuthorizeData, error) {
 	session := store.session.Copy()
 	defer session.Close()
@@ -84,6 +106,7 @@ func (store *MongoStorage) LoadAuthorize(code string) (*osin.AuthorizeData, erro
 	return mgoAuthorizeData.MapToOsinAuthorizeData(), err
 }
 
+// RemoveAuthorize implements the osin.Storage interface
 func (store *MongoStorage) RemoveAuthorize(code string) error {
 	session := store.session.Copy()
 	defer session.Close()
@@ -91,6 +114,7 @@ func (store *MongoStorage) RemoveAuthorize(code string) error {
 	return authorizations.RemoveId(code)
 }
 
+// SaveAccess implements the osin.Storage interface
 func (store *MongoStorage) SaveAccess(data *osin.AccessData) error {
 	session := store.session.Copy()
 	defer session.Close()
@@ -100,6 +124,7 @@ func (store *MongoStorage) SaveAccess(data *osin.AccessData) error {
 	return err
 }
 
+// LoadAccess implements the osin.Storage interface
 func (store *MongoStorage) LoadAccess(token string) (*osin.AccessData, error) {
 	session := store.session.Copy()
 	defer session.Close()
@@ -109,6 +134,7 @@ func (store *MongoStorage) LoadAccess(token string) (*osin.AccessData, error) {
 	return mgoAccessData.MapToOsinAccessData(), err
 }
 
+// RemoveAccess implements the osin.Storage interface
 func (store *MongoStorage) RemoveAccess(token string) error {
 	session := store.session.Copy()
 	defer session.Close()
@@ -116,6 +142,7 @@ func (store *MongoStorage) RemoveAccess(token string) error {
 	return accesses.RemoveId(token)
 }
 
+// LoadRefresh implements the osin.Storage interface
 func (store *MongoStorage) LoadRefresh(token string) (*osin.AccessData, error) {
 	session := store.session.Copy()
 	defer session.Close()
@@ -125,6 +152,7 @@ func (store *MongoStorage) LoadRefresh(token string) (*osin.AccessData, error) {
 	return mgoAccessData.MapToOsinAccessData(), err
 }
 
+// RemoveRefresh implements the osin.Storage interface
 func (store *MongoStorage) RemoveRefresh(token string) error {
 	session := store.session.Copy()
 	defer session.Close()
