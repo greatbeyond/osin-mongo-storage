@@ -221,7 +221,7 @@ func TestLoadAccesses(t *testing.T) {
 		t.Errorf("GetClient returned err: %v", err)
 	}
 
-	output, err := storage.LoadAccesses(client)
+	output, err := storage.LoadAccesses(bson.M{"client._id": client.GetId()})
 	if err != nil {
 		t.Errorf("LoadAccesses returned err: %v", err)
 	}

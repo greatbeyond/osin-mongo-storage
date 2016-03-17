@@ -50,13 +50,13 @@ func (store *MongoStorage) SetClient(id string, client osin.Client) error {
 	return err
 }
 
-// LoadAccesses returns all accesses for a given osin.Client
-func (store *MongoStorage) LoadAccesses(client osin.Client) ([]*osin.AccessData, error) {
+// LoadAccesses returns all accesses that matches given query
+func (store *MongoStorage) LoadAccesses(query bson.M) ([]*osin.AccessData, error) {
 	session := store.session.Copy()
 	defer session.Close()
 	accesses := session.DB(store.dbName).C(ACCESS_COL)
 	var mgoAccessData []*models.MgoAccessData
-	err := accesses.Find(bson.M{"client._id": client.GetId()}).All(&mgoAccessData)
+	err := accesses.Find(query).All(&mgoAccessData)
 
 	accessData := make([]*osin.AccessData, len(mgoAccessData))
 	for k, v := range mgoAccessData {
