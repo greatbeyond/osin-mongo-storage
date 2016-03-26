@@ -3,7 +3,7 @@ go-json-rest
 
 This Example shows how to use [OSIN](https://github.com/RangelReale/osin), [osing-mongo-storage](http://github.com/martint17r/osin-mongo-storage) and [go-json-rest](https://github.com/ant0ine/go-json-rest)
 
-[![baby-gopher](https://raw2.github.com/drnic/babygopher-site/gh-pages/images/babygopher-badge.png)](http://www.babygopher.org)
+[![baby-gopher](http://www.babygopher.org/images/babygopher-badge.png)](http://www.babygopher.org)
 
 This package is based on the [complete example from the OSIN package](https://github.com/RangelReale/osin/tree/master/example/complete): Copyright (c) 2013, Rangel Reale All rights reserved.
 
