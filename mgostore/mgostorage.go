@@ -1,7 +1,7 @@
 package mgostore
 
 import (
-	"github.com/ashkang/osin-mongo-storage/mgostore/models"
+	"github.com/greatbeyond/osin-mongo-storage/mgostore/models"
 
 	"github.com/RangelReale/osin"
 
